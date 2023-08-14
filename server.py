@@ -3,8 +3,6 @@ from Controller.DigitalForecast import DigitalForecast
 
 app = Flask(__name__)
 
-# ======================
-
 
 @app.route("/<provinceName>")
 def Province(provinceName):

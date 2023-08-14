@@ -257,15 +257,29 @@ class DigitalForecast:
   @staticmethod
   def selectAreaID(provinceName, area_id):
     data = DigitalForecast.read_extract_data(provinceName)
-    # Find the area with the specified area_id
-    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
-                     None)
-    if area_info:
-      parameters = area_info['parameters']
+    reference_texts = DataExtractor.get_reference_texts()
+    if 'area' in data:
+      # Find the area with the specified area_id
+      area_info = next((a for a in data['area'] if a['area_id'] == area_id),
+                       None)
+      if area_info:
+        parameters = area_info['parameters'], 200
+      else:
+        parameters = {
+          "code": 404,
+          "message":
+          f"'{area_id}' is't available, please input a valid area_id."
+        }, 404
+
     else:
+      suggestion = difflib.get_close_matches(provinceName.lower(),
+                                             reference_texts,
+                                             n=1)
       parameters = {
-        "code": 404,
-        "message": f"'{area_id}' is't available, please input a valid area_id."
+        "code":
+        404,
+        "message":
+        f"'{provinceName}' is't available, please input a valid provinceName. did you mean {suggestion}?"
       }, 404
 
     return parameters
@@ -273,33 +287,39 @@ class DigitalForecast:
   @staticmethod
   def selectParameterID(provinceName, area_id, parameter_id):
     data = DigitalForecast.read_extract_data(provinceName)
-    # Find the area with the specified area_id
-    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
-                     None)
-    if area_info:
-      parameters = area_info['parameters']
-      parameter_info = next(
-        (p for p in parameters if p['parameter_id'] == parameter_id), None)
-      if parameter_info:
-        #parameter_description = parameter_info['description']
-        timeranges = parameter_info['timeranges']
-        # Format datetime for each timerange
-        #for timerange in timeranges:
-        #  datetime_str = timerange['datetime']
-        #  datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
-        #  formatted_time = datetime_obj.strftime("%H:%M")
-        #  formatted_day = datetime_obj.strftime("%A")
-        #  formatted_date = datetime_obj.strftime("%d %B %Y")
-        #  timerange['formatted_time'] = formatted_time
-        #  timerange['formatted_day'] = formatted_day
-        #  timerange['formatted_date'] = formatted_date
-
-        return timeranges
-
-    return {
-      "code": 404,
-      "message": f"parameter not found. invalid {area_id} or {parameter_id}"
-    }, 404
+    reference_texts = DataExtractor.get_reference_texts()
+    if 'area' in data:
+      # Find the area with the specified area_id
+      area_info = next((a for a in data['area'] if a['area_id'] == area_id),
+                       None)
+      if area_info:
+        parameters = area_info['parameters']
+        parameter_info = next(
+          (p for p in parameters if p['parameter_id'] == parameter_id), None)
+        if parameter_info:
+          timeranges = parameter_info['timeranges']
+          return timeranges
+        else:
+          return {
+            "code": 404,
+            "message": f"Parameter with ID '{parameter_id}' not found."
+          }, 404
+      else:
+        return {
+          "code": 404,
+          "message":
+          f"'{area_id}' is't available, please input a valid area_id."
+        }, 404
+    else:
+      suggestion = difflib.get_close_matches(provinceName.lower(),
+                                             reference_texts,
+                                             n=1)
+      return {
+        "code":
+        404,
+        "message":
+        f"'{provinceName}' is't available, please input a valid provinceName.did you mean {suggestion}?!"
+      }, 404
 
   @staticmethod
   def selectTimerange(provinceName, area_id, parameter_id, timerange):

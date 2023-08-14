@@ -2,7 +2,7 @@ import requests, xmltodict, json, difflib
 from datetime import datetime
 
 
-class DataExtractor:
+class DataValidation:
 
   @staticmethod
   def get_reference_texts():
@@ -51,7 +51,7 @@ class DigitalForecast:
 
   @staticmethod
   def extract_data(json_data, provinceName):
-    reference_texts = DataExtractor.get_reference_texts()
+    reference_texts = DataValidation.get_reference_texts()
     if json_data is None:
       suggestion = difflib.get_close_matches(provinceName.lower(),
                                              reference_texts,
@@ -259,7 +259,8 @@ class DigitalForecast:
 
     return wind_direction_code.get(code, "")
 
-  # =================================
+  # ===========================================
+  
   @staticmethod
   def selectProvince(provinceName):
     pass
@@ -267,7 +268,7 @@ class DigitalForecast:
   @staticmethod
   def selectAreaID(provinceName, area_id):
     data = DigitalForecast.read_extract_data(provinceName)
-    reference_texts = DataExtractor.get_reference_texts()
+    reference_texts = DataValidation.get_reference_texts()
 
     if 'area' in data:
       # Find the area with the specified area_id
@@ -307,7 +308,7 @@ class DigitalForecast:
   @staticmethod
   def selectParameterID(provinceName, area_id, parameter_id):
     data = DigitalForecast.read_extract_data(provinceName)
-    reference_texts = DataExtractor.get_reference_texts()
+    reference_texts = DataValidation.get_reference_texts()
 
     if 'area' in data:
       # Find the area with the specified area_id
@@ -355,7 +356,7 @@ class DigitalForecast:
   @staticmethod
   def selectTimerange(provinceName, area_id, parameter_id, timerange):
     data = DigitalForecast.read_extract_data(provinceName)
-    reference_texts = DataExtractor.get_reference_texts()
+    reference_texts = DataValidation.get_reference_texts()
 
     if 'area' in data:
       # Find the area with the specified area_id
@@ -399,13 +400,13 @@ class DigitalForecast:
               "code": 404,
               "message": f"Parameter with timerange '{timerange}' not found."
             }, 404
-        
+
         else:
           return {
             "code": 404,
             "message": f"Parameter with ID '{parameter_id}' not found."
           }, 404
-          
+
       else:
         return {
           "code": 404,

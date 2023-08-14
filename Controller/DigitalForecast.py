@@ -60,8 +60,10 @@ class DigitalForecast:
         suggestion = suggestion[0]
       else:
         return {
-          'code': 404,
-          'messageOwner': f"apaan dah ni '{provinceName}'.isi yang bener ya, sodara. jangan banyak typo!!"
+          'code':
+          404,
+          'messageOwner':
+          f"apaan dah ni '{provinceName}'.isi yang bener ya, sodara. jangan banyak typo!!"
         }
 
       return {
@@ -266,6 +268,7 @@ class DigitalForecast:
   def selectAreaID(provinceName, area_id):
     data = DigitalForecast.read_extract_data(provinceName)
     reference_texts = DataExtractor.get_reference_texts()
+
     if 'area' in data:
       # Find the area with the specified area_id
       area_info = next((a for a in data['area'] if a['area_id'] == area_id),
@@ -278,16 +281,25 @@ class DigitalForecast:
           "message":
           f"'{area_id}' is't available, please input a valid area_id."
         }, 404
-
     else:
       suggestion = difflib.get_close_matches(provinceName.lower(),
                                              reference_texts,
                                              n=1)
+      if suggestion:
+        suggestion = suggestion[0]
+      else:
+        return {
+          'code':
+          404,
+          'messageOwner':
+          f"apaan dah ni '{provinceName}'.isi yang bener ya, sodara. jangan banyak typo!!"
+        }
+
       parameters = {
         "code":
         404,
         "message":
-        f"'{provinceName}' is't available, please input a valid provinceName. did you mean {suggestion}?"
+        f"'{provinceName}' is't available. Please input a valid provinceName. Did you mean {suggestion}?"
       }, 404
 
     return parameters
@@ -296,6 +308,7 @@ class DigitalForecast:
   def selectParameterID(provinceName, area_id, parameter_id):
     data = DigitalForecast.read_extract_data(provinceName)
     reference_texts = DataExtractor.get_reference_texts()
+
     if 'area' in data:
       # Find the area with the specified area_id
       area_info = next((a for a in data['area'] if a['area_id'] == area_id),
@@ -322,50 +335,101 @@ class DigitalForecast:
       suggestion = difflib.get_close_matches(provinceName.lower(),
                                              reference_texts,
                                              n=1)
+      if suggestion:
+        suggestion = suggestion[0]
+      else:
+        return {
+          'code':
+          404,
+          'messageOwner':
+          f"apaan dah ni '{provinceName}'.isi yang bener ya, sodara. jangan banyak typo!!"
+        }
+
       return {
         "code":
         404,
         "message":
-        f"'{provinceName}' is't available, please input a valid provinceName.did you mean {suggestion}?!"
+        f"'{provinceName}' is't available. Please input a valid provinceName. Did you mean {suggestion}?"
       }, 404
 
   @staticmethod
   def selectTimerange(provinceName, area_id, parameter_id, timerange):
     data = DigitalForecast.read_extract_data(provinceName)
-    # Find the area with the specified area_id
-    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
-                     None)
-    if area_info:
-      parameters = area_info['parameters']
-      parameter_info = next(
-        (p for p in parameters if p['parameter_id'] == parameter_id), None)
-      if parameter_info:
-        #parameter_description = parameter_info['description']
-        timeranges = parameter_info['timeranges']
+    reference_texts = DataExtractor.get_reference_texts()
 
-        if parameter_info['type'] == 'hourly':
-          timerange_info = next(
-            (t for t in timeranges
-             if t['type'] == 'hourly' and t['h'] == timerange), None)
-        elif parameter_info['type'] == 'daily':
-          timerange_info = next(
-            (t for t in timeranges
-             if t['type'] == 'daily' and t['day'] == timerange), None)
-        else:
-          timerange_info = None
+    if 'area' in data:
+      # Find the area with the specified area_id
+      area_info = next((a for a in data['area'] if a['area_id'] == area_id),
+                       None)
+      if area_info:
+        parameters = area_info['parameters']
+        parameter_info = next(
+          (p for p in parameters if p['parameter_id'] == parameter_id), None)
+        if parameter_info:
+          #parameter_description = parameter_info['description']
+          timeranges = parameter_info['timeranges']
 
-        if timerange_info:
-          values = timerange_info['values']
-          if values:
-            # Format datetime
-            #datetime_str = timerange_info['datetime']
-            #datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
-            #formatted_time = datetime_obj.strftime("%H:%M")
-            #formatted_day = datetime_obj.strftime("%A")
-            #formatted_date = datetime_obj.strftime("%d %B %Y")
-
-            return values
+          if parameter_info['type'] == 'hourly':
+            timerange_info = next(
+              (t for t in timeranges
+               if t['type'] == 'hourly' and t['h'] == timerange), None)
+          elif parameter_info['type'] == 'daily':
+            timerange_info = next(
+              (t for t in timeranges
+               if t['type'] == 'daily' and t['day'] == timerange), None)
           else:
-            return "No values available for the specified parameter and timerange."
+            timerange_info = None
 
-    return "Parameter or timerange not found"
+          if timerange_info:
+            values = timerange_info['values']
+            if values:
+              # Format datetime
+              #datetime_str = timerange_info['datetime']
+              #datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
+              #formatted_time = datetime_obj.strftime("%H:%M")
+              #formatted_day = datetime_obj.strftime("%A")
+              #formatted_date = datetime_obj.strftime("%d %B %Y")
+
+              return values
+            else:
+              return "No values available for the specified parameter and timerange."
+
+          else:
+            return {
+              "code": 404,
+              "message": f"Parameter with timerange '{timerange}' not found."
+            }, 404
+        
+        else:
+          return {
+            "code": 404,
+            "message": f"Parameter with ID '{parameter_id}' not found."
+          }, 404
+          
+      else:
+        return {
+          "code": 404,
+          "message":
+          f"'{area_id}' is't available, please input a valid area_id."
+        }, 404
+
+    else:
+      suggestion = difflib.get_close_matches(provinceName.lower(),
+                                             reference_texts,
+                                             n=1)
+      if suggestion:
+        suggestion = suggestion[0]
+      else:
+        return {
+          'code':
+          404,
+          'messageOwner':
+          f"apaan dah ni '{provinceName}'.isi yang bener ya, sodara. jangan banyak typo!!"
+        }
+
+      return {
+        "code":
+        404,
+        "message":
+        f"'{provinceName}' is't available. Please input a valid provinceName. Did you mean {suggestion}?"
+      }, 404

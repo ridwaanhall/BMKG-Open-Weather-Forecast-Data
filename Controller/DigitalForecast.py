@@ -70,7 +70,7 @@ class DigitalForecast:
         'code':
         404,
         'message':
-        f"'{provinceName}' is not available. did you mean {suggestion}?"
+        f"Province with Name '{provinceName}' not found. did you mean '{suggestion}'?"
       }
 
     try:
@@ -300,7 +300,7 @@ class DigitalForecast:
         "code":
         404,
         "message":
-        f"Province with Name '{provinceName}' not found. Did you mean {suggestion}?"
+        f"Province with Name '{provinceName}' not found. Did you mean '{suggestion}'?"
       }, 404
 
     return parameters
@@ -330,7 +330,7 @@ class DigitalForecast:
         return {
           "code": 404,
           "message":
-          f"'{area_id}' is't available, please input a valid area_id."
+          f"Area with ID '{area_id}' not found."
         }, 404
     else:
       suggestion = difflib.get_close_matches(provinceName.lower(),
@@ -350,7 +350,7 @@ class DigitalForecast:
         "code":
         404,
         "message":
-        f"'{provinceName}' is't available. Please input a valid provinceName. Did you mean {suggestion}?"
+        f"'Province with Name {provinceName}' not found. Did you mean '{suggestion}'?"
       }, 404
 
   @staticmethod
@@ -398,7 +398,7 @@ class DigitalForecast:
           else:
             return {
               "code": 404,
-              "message": f"Parameter with timerange '{timerange}' not found."
+              "message": f"Parameter with Timerange '{timerange}' not found."
             }, 404
 
         else:
@@ -411,7 +411,7 @@ class DigitalForecast:
         return {
           "code": 404,
           "message":
-          f"'{area_id}' is't available, please input a valid area_id."
+          f"Area with ID '{area_id}' not found."
         }, 404
 
     else:
@@ -432,5 +432,5 @@ class DigitalForecast:
         "code":
         404,
         "message":
-        f"'{provinceName}' is't available. Please input a valid provinceName. Did you mean {suggestion}?"
+        f"Province with Name '{provinceName}' not found. Did you mean '{suggestion}'?"
       }, 404

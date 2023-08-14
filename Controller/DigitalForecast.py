@@ -1,5 +1,21 @@
-import requests, xmltodict, json
+import requests, xmltodict, json, difflib
 from datetime import datetime
+
+
+class DataExtractor:
+
+  @staticmethod
+  def get_reference_texts():
+    return {
+      "Aceh", "Bali", "BangkaBelitung", "Banten", "Bengkulu", "DIYogyakarta",
+      "DKIJakarta", "Gorontalo", "Jambi", "JawaBarat", "JawaTengah",
+      "JawaTimur", "KalimantanBarat", "KalimantanSelatan", "KalimantanTengah",
+      "KalimantanTimur", "KalimantanUtara", "KepulauanRiau", "Lampung",
+      "Maluku", "MalukuUtara", "NusaTenggaraBarat", "NusaTenggaraTimur",
+      "Papua", "PapuaBarat", "Riau", "SulawesiBarat", "SulawesiSelatan",
+      "SulawesiTengah", "SulawesiTenggara", "SulawesiUtara", "SumateraBarat",
+      "SumateraSelatan", "SumateraUtara", "Indonesia"
+    }
 
 
 class DigitalForecast:
@@ -8,13 +24,17 @@ class DigitalForecast:
   def read_data_from_url(url):
     try:
       response = requests.get(url)
-      response.raise_for_status(
-      )  # Raise an exception for 4xx or 5xx status codes
-      data_dict = xmltodict.parse(response.content)
-      json_data = json.dumps(data_dict)
-      return json_data
+      if response.status_code == 200:
+        data_dict = xmltodict.parse(response.content)
+        json_data = json.dumps(data_dict)
+        return json_data
+      elif response.status_code == 404:
+        return None
+      else:
+        print(f"Error: Unexpected status code - {response.status_code}")
+        return None
     except requests.exceptions.RequestException as e:
-      # Handle the error case
+      # Handle other request exceptions
       print(f"Error: {e}")
       return None
 
@@ -24,145 +44,165 @@ class DigitalForecast:
   def read_extract_data(provinceName):
     url = f"https://data.bmkg.go.id/DataMKG/MEWS/DigitalForecast/DigitalForecast-{provinceName}.xml"
     json_data = DigitalForecast.read_data_from_url(url)
-    data = DigitalForecast.extract_data(json_data)
+    data = DigitalForecast.extract_data(json_data, provinceName)
     return data
 
   # ====================
 
   @staticmethod
-  def extract_data(json_data):
-    data = json.loads(json_data)
-    issue = data['data']['forecast']['issue']
-    area = data['data']['forecast']['area']
+  def extract_data(json_data, provinceName):
+    reference_texts = DataExtractor.get_reference_texts()
+    if json_data is None:
+      suggestion = difflib.get_close_matches(provinceName.lower(),
+                                             reference_texts,
+                                             n=1)
+      return {
+        'code':
+        404,
+        'message':
+        f"['{provinceName}'] is not available. did you mean {suggestion}?"
+      }
 
-    timestamp = issue['timestamp']
-    year = issue['year']
-    month = issue['month']
-    day = issue['day']
-    hour = issue['hour']
-    minute = issue['minute']
-    second = issue['second']
+    try:
+      data = json.loads(json_data)
+      if 'data' in data and 'forecast' in data['data']:
+        issue = data['data']['forecast']['issue']
+        area = data['data']['forecast']['area']
 
-    area_info = []
-    for a in area:
-      area_id = a['@id']
-      description = a['@description']
-      latitude = a['@latitude']
-      longitude = a['@longitude']
-      coordinate = a['@coordinate']
-      area_type = a['@type']
-      region = a['@region']
-      level = a['@level']
-      domain = a['@domain']
-      tags = a['@tags']
+        timestamp = issue['timestamp']
+        year = issue['year']
+        month = issue['month']
+        day = issue['day']
+        hour = issue['hour']
+        minute = issue['minute']
+        second = issue['second']
 
-      names = {}
-      for name in a['name']:
-        lang = name['@xml:lang']
-        text = name['#text']
-        if lang == 'id_ID':
-          names[lang] = text
+        area_info = []
+        for a in area:
+          area_id = a['@id']
+          description = a['@description']
+          latitude = a['@latitude']
+          longitude = a['@longitude']
+          coordinate = a['@coordinate']
+          area_type = a['@type']
+          region = a['@region']
+          level = a['@level']
+          domain = a['@domain']
+          tags = a['@tags']
 
-      for name in a['name']:
-        lang = name['@xml:lang']
-        text = name['#text']
-        if lang == 'en_US':
-          names[lang] = text
+          names = {}
+          for name in a['name']:
+            lang = name['@xml:lang']
+            text = name['#text']
+            if lang == 'id_ID':
+              names[lang] = text
 
-      parameters = []
-      for parameter in a.get('parameter', []):
-        parameter_id = parameter['@id']
-        parameter_description = parameter['@description']
-        parameter_type = parameter['@type']
+          for name in a['name']:
+            lang = name['@xml:lang']
+            text = name['#text']
+            if lang == 'en_US':
+              names[lang] = text
 
-        timeranges = []
-        for timerange in parameter.get('timerange', []):
-          if isinstance(timerange, dict):
-            timerange_type = timerange['@type']
-            timerange_day = timerange.get('@day')
-            timerange_h = timerange.get('@h')
-            timerange_datetime = timerange['@datetime']
+          parameters = []
+          for parameter in a.get('parameter', []):
+            parameter_id = parameter['@id']
+            parameter_description = parameter['@description']
+            parameter_type = parameter['@type']
 
-            datetime_str = timerange['@datetime']
-            datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
-            formatted_time = datetime_obj.strftime("%H:%M")
-            formatted_day = datetime_obj.strftime("%A")
-            formatted_date = datetime_obj.strftime("%d %B %Y")
-            #  timerange['formatted_time'] = formatted_time
-            #  timerange['formatted_day'] = formatted_day
-            #  timerange['formatted_date'] = formatted_date
+            timeranges = []
+            for timerange in parameter.get('timerange', []):
+              if isinstance(timerange, dict):
+                timerange_type = timerange['@type']
+                timerange_day = timerange.get('@day')
+                timerange_h = timerange.get('@h')
+                timerange_datetime = timerange['@datetime']
 
-            values = []
-            value = timerange.get('value')
-            if isinstance(value, list):
-              for val in value:
-                value_unit = val.get('@unit')
-                value_text = val.get('#text')
-                if parameter_id == 'weather':
-                  value_text = DigitalForecast.get_weather_description(
-                    value_text)
-                elif parameter_id == 'wd':
-                  if value_unit == 'CARD':
-                    value_text = DigitalForecast.get_wind_direction_description(
+                datetime_str = timerange['@datetime']
+                datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
+                formatted_time = datetime_obj.strftime("%H:%M")
+                formatted_day = datetime_obj.strftime("%A")
+                formatted_date = datetime_obj.strftime("%d %B %Y")
+                #  timerange['formatted_time'] = formatted_time
+                #  timerange['formatted_day'] = formatted_day
+                #  timerange['formatted_date'] = formatted_date
+
+                values = []
+                value = timerange.get('value')
+                if isinstance(value, list):
+                  for val in value:
+                    value_unit = val.get('@unit')
+                    value_text = val.get('#text')
+                    if parameter_id == 'weather':
+                      value_text = DigitalForecast.get_weather_description(
+                        value_text)
+                    elif parameter_id == 'wd':
+                      if value_unit == 'CARD':
+                        value_text = DigitalForecast.get_wind_direction_description(
+                          value_text)
+                    values.append({'unit': value_unit, 'text': value_text})
+                elif isinstance(value, dict):
+                  value_unit = value.get('@unit')
+                  value_text = value.get('#text')
+                  if parameter_id == 'weather':
+                    value_text = DigitalForecast.get_weather_description(
                       value_text)
-                values.append({'unit': value_unit, 'text': value_text})
-            elif isinstance(value, dict):
-              value_unit = value.get('@unit')
-              value_text = value.get('#text')
-              if parameter_id == 'weather':
-                value_text = DigitalForecast.get_weather_description(
-                  value_text)
-              elif parameter_id == 'wd':
-                if value_unit == 'CARD':
-                  value_text = DigitalForecast.get_wind_direction_description(
-                    value_text)
-              values.append({'unit': value_unit, 'text': value_text})
+                  elif parameter_id == 'wd':
+                    if value_unit == 'CARD':
+                      value_text = DigitalForecast.get_wind_direction_description(
+                        value_text)
+                  values.append({'unit': value_unit, 'text': value_text})
 
-            timeranges.append({
-              'type': timerange_type,
-              'day': timerange_day,
-              'h': timerange_h,
-              'datetime': timerange_datetime,
-              'formatted_time': formatted_time,
-              'formatted_day': formatted_day,
-              'formatted_date': formatted_date,
-              'values': values
+                timeranges.append({
+                  'type': timerange_type,
+                  'day': timerange_day,
+                  'h': timerange_h,
+                  'datetime': timerange_datetime,
+                  'formatted_time': formatted_time,
+                  'formatted_day': formatted_day,
+                  'formatted_date': formatted_date,
+                  'values': values
+                })
+
+            parameters.append({
+              'parameter_id': parameter_id,
+              'description': parameter_description,
+              'type': parameter_type,
+              'timeranges': timeranges
             })
 
-        parameters.append({
-          'parameter_id': parameter_id,
-          'description': parameter_description,
-          'type': parameter_type,
-          'timeranges': timeranges
-        })
+          area_info.append({
+            'area_id': area_id,
+            'description': description,
+            'latitude': latitude,
+            'longitude': longitude,
+            'coordinate': coordinate,
+            'type': area_type,
+            'region': region,
+            'level': level,
+            'domain': domain,
+            'tags': tags,
+            'names': names,
+            'parameters': parameters
+          })
 
-      area_info.append({
-        'area_id': area_id,
-        'description': description,
-        'latitude': latitude,
-        'longitude': longitude,
-        'coordinate': coordinate,
-        'type': area_type,
-        'region': region,
-        'level': level,
-        'domain': domain,
-        'tags': tags,
-        'names': names,
-        'parameters': parameters
-      })
-
-    return {
-      'issue': {
-        'timestamp': timestamp,
-        'year': year,
-        'month': month,
-        'day': day,
-        'hour': hour,
-        'minute': minute,
-        'second': second
-      },
-      'area': area_info
-    }
+        return {
+          'issue': {
+            'timestamp': timestamp,
+            'year': year,
+            'month': month,
+            'day': day,
+            'hour': hour,
+            'minute': minute,
+            'second': second
+          },
+          'area': area_info
+        }
+      else:
+        print("Error: Invalid JSON data format")
+        return None, None
+    except json.JSONDecodeError:
+      print("Error: Unable to decode JSON data")
+      return None, None
 
   @staticmethod
   def get_weather_description(code):
@@ -209,7 +249,6 @@ class DigitalForecast:
 
     return wind_direction_code.get(code, "")
 
-
   # =================================
   @staticmethod
   def selectProvince(provinceName):
@@ -224,8 +263,10 @@ class DigitalForecast:
     if area_info:
       parameters = area_info['parameters']
     else:
-      parameters = {"code": 400,
-                   "message": f"'{area_id} is't available, please input a valid area_id."},400
+      parameters = {
+        "code": 404,
+        "message": f"'{area_id}' is't available, please input a valid area_id."
+      }, 404
 
     return parameters
 
@@ -255,7 +296,10 @@ class DigitalForecast:
 
         return timeranges
 
-    return "Parameter not found"
+    return {
+      "code": 404,
+      "message": f"parameter not found. invalid {area_id} or {parameter_id}"
+    }, 404
 
   @staticmethod
   def selectTimerange(provinceName, area_id, parameter_id, timerange):

@@ -56,11 +56,19 @@ class DigitalForecast:
       suggestion = difflib.get_close_matches(provinceName.lower(),
                                              reference_texts,
                                              n=1)
+      if suggestion:
+        suggestion = suggestion[0]
+      else:
+        return {
+          'code': 404,
+          'messageOwner': f"apaan dah ni '{provinceName}'.isi yang bener ya, sodara. jangan banyak typo!!"
+        }
+
       return {
         'code':
         404,
         'message':
-        f"['{provinceName}'] is not available. did you mean {suggestion}?"
+        f"'{provinceName}' is not available. did you mean {suggestion}?"
       }
 
     try:

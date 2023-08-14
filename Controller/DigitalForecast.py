@@ -27,108 +27,6 @@ class DigitalForecast:
     data = DigitalForecast.extract_data(json_data)
     return data
 
-  @staticmethod
-  def selectProvince(provinceName):
-    data = DigitalForecast.read_extract_data(provinceName)
-
-    areas = {
-      "area_id": data["area_id"],
-      "coordinate": data["coordinate"],
-      "description": data["description"],
-      "domain": data["domain"],
-      "latitude": data["latitude"],
-      "level": data["level"],
-      "longitude": data["longitude"],
-      "names": data["names"]
-    }
-
-    issue_info = data["issue"]
-
-    forecast = {"issue": issue_info, "area": areas}
-    return forecast
-
-  @staticmethod
-  def selectAreaID(provinceName, area_id):
-    data = DigitalForecast.read_extract_data(provinceName)
-    # Find the area with the specified area_id
-    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
-                     None)
-    if area_info:
-      parameters = area_info['parameters']
-    else:
-      parameters = []
-
-    return parameters
-
-  @staticmethod
-  def selectParameterID(provinceName, area_id, parameter_id):
-    data = DigitalForecast.read_extract_data(provinceName)
-    # Find the area with the specified area_id
-    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
-                     None)
-    if area_info:
-      parameters = area_info['parameters']
-      parameter_info = next(
-        (p for p in parameters if p['parameter_id'] == parameter_id), None)
-      if parameter_info:
-        #parameter_description = parameter_info['description']
-        timeranges = parameter_info['timeranges']
-        # Format datetime for each timerange
-        #for timerange in timeranges:
-        #  datetime_str = timerange['datetime']
-        #  datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
-        #  formatted_time = datetime_obj.strftime("%H:%M")
-        #  formatted_day = datetime_obj.strftime("%A")
-        #  formatted_date = datetime_obj.strftime("%d %B %Y")
-        #  timerange['formatted_time'] = formatted_time
-        #  timerange['formatted_day'] = formatted_day
-        #  timerange['formatted_date'] = formatted_date
-
-        return timeranges
-
-    return "Parameter not found"
-
-  @staticmethod
-  def selectTimerange(provinceName, area_id, parameter_id, timerange):
-    data = DigitalForecast.read_extract_data(provinceName)
-    # Find the area with the specified area_id
-    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
-                     None)
-    if area_info:
-      parameters = area_info['parameters']
-      parameter_info = next(
-        (p for p in parameters if p['parameter_id'] == parameter_id), None)
-      if parameter_info:
-        #parameter_description = parameter_info['description']
-        timeranges = parameter_info['timeranges']
-
-        if parameter_info['type'] == 'hourly':
-          timerange_info = next(
-            (t for t in timeranges
-             if t['type'] == 'hourly' and t['h'] == timerange), None)
-        elif parameter_info['type'] == 'daily':
-          timerange_info = next(
-            (t for t in timeranges
-             if t['type'] == 'daily' and t['day'] == timerange), None)
-        else:
-          timerange_info = None
-
-        if timerange_info:
-          values = timerange_info['values']
-          if values:
-            # Format datetime
-            #datetime_str = timerange_info['datetime']
-            #datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
-            #formatted_time = datetime_obj.strftime("%H:%M")
-            #formatted_day = datetime_obj.strftime("%A")
-            #formatted_date = datetime_obj.strftime("%d %B %Y")
-
-            return values
-          else:
-            return "No values available for the specified parameter and timerange."
-
-    return "Parameter or timerange not found"
-
   # ====================
 
   @staticmethod
@@ -310,3 +208,92 @@ class DigitalForecast:
     }
 
     return wind_direction_code.get(code, "")
+
+
+  # =================================
+  @staticmethod
+  def selectProvince(provinceName):
+    pass
+
+  @staticmethod
+  def selectAreaID(provinceName, area_id):
+    data = DigitalForecast.read_extract_data(provinceName)
+    # Find the area with the specified area_id
+    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
+                     None)
+    if area_info:
+      parameters = area_info['parameters']
+    else:
+      parameters = {"code": 400,
+                   "message": f"'{area_id} is't available, please input a valid area_id."},400
+
+    return parameters
+
+  @staticmethod
+  def selectParameterID(provinceName, area_id, parameter_id):
+    data = DigitalForecast.read_extract_data(provinceName)
+    # Find the area with the specified area_id
+    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
+                     None)
+    if area_info:
+      parameters = area_info['parameters']
+      parameter_info = next(
+        (p for p in parameters if p['parameter_id'] == parameter_id), None)
+      if parameter_info:
+        #parameter_description = parameter_info['description']
+        timeranges = parameter_info['timeranges']
+        # Format datetime for each timerange
+        #for timerange in timeranges:
+        #  datetime_str = timerange['datetime']
+        #  datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
+        #  formatted_time = datetime_obj.strftime("%H:%M")
+        #  formatted_day = datetime_obj.strftime("%A")
+        #  formatted_date = datetime_obj.strftime("%d %B %Y")
+        #  timerange['formatted_time'] = formatted_time
+        #  timerange['formatted_day'] = formatted_day
+        #  timerange['formatted_date'] = formatted_date
+
+        return timeranges
+
+    return "Parameter not found"
+
+  @staticmethod
+  def selectTimerange(provinceName, area_id, parameter_id, timerange):
+    data = DigitalForecast.read_extract_data(provinceName)
+    # Find the area with the specified area_id
+    area_info = next((a for a in data['area'] if a['area_id'] == area_id),
+                     None)
+    if area_info:
+      parameters = area_info['parameters']
+      parameter_info = next(
+        (p for p in parameters if p['parameter_id'] == parameter_id), None)
+      if parameter_info:
+        #parameter_description = parameter_info['description']
+        timeranges = parameter_info['timeranges']
+
+        if parameter_info['type'] == 'hourly':
+          timerange_info = next(
+            (t for t in timeranges
+             if t['type'] == 'hourly' and t['h'] == timerange), None)
+        elif parameter_info['type'] == 'daily':
+          timerange_info = next(
+            (t for t in timeranges
+             if t['type'] == 'daily' and t['day'] == timerange), None)
+        else:
+          timerange_info = None
+
+        if timerange_info:
+          values = timerange_info['values']
+          if values:
+            # Format datetime
+            #datetime_str = timerange_info['datetime']
+            #datetime_obj = datetime.strptime(datetime_str, "%Y%m%d%H%M")
+            #formatted_time = datetime_obj.strftime("%H:%M")
+            #formatted_day = datetime_obj.strftime("%A")
+            #formatted_date = datetime_obj.strftime("%d %B %Y")
+
+            return values
+          else:
+            return "No values available for the specified parameter and timerange."
+
+    return "Parameter or timerange not found"

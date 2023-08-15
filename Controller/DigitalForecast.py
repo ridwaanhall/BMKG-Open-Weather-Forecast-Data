@@ -18,7 +18,6 @@ class ProcessUrl:
         print(f"Error: Unexpected status code - {response.status_code}")
         return None
     except requests.exceptions.RequestException as e:
-      # Handle other request exceptions
       print(f"Error: {e}")
       return None
 

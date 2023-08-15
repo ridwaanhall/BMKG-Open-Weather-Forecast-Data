@@ -27,3 +27,9 @@ def Timerange(provinceName, area_id, parameter_id, timerange):
   data = DigitalForecast.selectTimerange(provinceName, area_id, parameter_id,
                                          timerange)
   return data
+
+
+# Define the route for /favicon.ico
+@app.route('/favicon.ico')
+def favicon():
+  return '', 404  # Return a 404 response to block favicon requests

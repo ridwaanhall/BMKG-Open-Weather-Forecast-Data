@@ -340,7 +340,7 @@ class DigitalForecast:
       else:
         parameters = {
           "code": 404,
-          "message": f"'Area with ID '{area_id}' not found."
+          "message": f"Area with ID '{area_id}' not found."
         }, 404
     else:
       suggestion = difflib.get_close_matches(provinceName.lower(),

@@ -1,7 +1,24 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from Controller.DigitalForecast import DigitalForecast
+from Controller.HomeController import HomeController
 
 app = Flask(__name__)
+
+
+@app.route("/")
+def Home():
+  return redirect(url_for('HomeXML'))
+
+@app.route("/home-json")
+def HomeJSON():
+  data = HomeController.load_home_json()
+  return data
+
+
+@app.route("/home-xml")
+def HomeXML():
+  data = HomeController.load_home_xml()
+  return data
 
 
 @app.route("/<provinceName>")

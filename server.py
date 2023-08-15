@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route("/<provinceName>")
 def Province(provinceName):
-  data = DigitalForecast.read_extract_data(provinceName)
+  data = DigitalForecast.selectProvince(provinceName)
   return data
 
 

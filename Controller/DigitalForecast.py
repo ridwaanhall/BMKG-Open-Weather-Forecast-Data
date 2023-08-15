@@ -1,26 +1,8 @@
 import requests, xmltodict, json, difflib
 from datetime import datetime
 
-# make process data.
 
-
-class DataValidation:
-
-  @staticmethod
-  def get_reference_texts():
-    return {
-      "Aceh", "Bali", "BangkaBelitung", "Banten", "Bengkulu", "DIYogyakarta",
-      "DKIJakarta", "Gorontalo", "Jambi", "JawaBarat", "JawaTengah",
-      "JawaTimur", "KalimantanBarat", "KalimantanSelatan", "KalimantanTengah",
-      "KalimantanTimur", "KalimantanUtara", "KepulauanRiau", "Lampung",
-      "Maluku", "MalukuUtara", "NusaTenggaraBarat", "NusaTenggaraTimur",
-      "Papua", "PapuaBarat", "Riau", "SulawesiBarat", "SulawesiSelatan",
-      "SulawesiTengah", "SulawesiTenggara", "SulawesiUtara", "SumateraBarat",
-      "SumateraSelatan", "SumateraUtara", "Indonesia"
-    }
-
-
-class DigitalForecast:
+class ProcessUrl:
 
   @staticmethod
   def read_data_from_url(url):
@@ -40,16 +22,15 @@ class DigitalForecast:
       print(f"Error: {e}")
       return None
 
-  # =====================================
-
   @staticmethod
   def read_extract_data(provinceName):
     url = f"https://data.bmkg.go.id/DataMKG/MEWS/DigitalForecast/DigitalForecast-{provinceName}.xml"
-    json_data = DigitalForecast.read_data_from_url(url)
-    data = DigitalForecast.extract_data(json_data, provinceName)
+    json_data = ProcessUrl.read_data_from_url(url)
+    data = ExtractData.extract_data(json_data, provinceName)
     return data
 
-  # ====================
+
+class ExtractData:
 
   @staticmethod
   def extract_data(json_data, provinceName):
@@ -145,22 +126,22 @@ class DigitalForecast:
                     value_unit = val.get('@unit')
                     value_text = val.get('#text')
                     if parameter_id == 'weather':
-                      value_text = DigitalForecast.get_weather_description(
+                      value_text = DescriptionCode.get_weather_description(
                         value_text)
                     elif parameter_id == 'wd':
                       if value_unit == 'CARD':
-                        value_text = DigitalForecast.get_wind_direction_description(
+                        value_text = DescriptionCode.get_wind_direction_description(
                           value_text)
                     values.append({'unit': value_unit, 'text': value_text})
                 elif isinstance(value, dict):
                   value_unit = value.get('@unit')
                   value_text = value.get('#text')
                   if parameter_id == 'weather':
-                    value_text = DigitalForecast.get_weather_description(
+                    value_text = DescriptionCode.get_weather_description(
                       value_text)
                   elif parameter_id == 'wd':
                     if value_unit == 'CARD':
-                      value_text = DigitalForecast.get_wind_direction_description(
+                      value_text = DescriptionCode.get_wind_direction_description(
                         value_text)
                   values.append({'unit': value_unit, 'text': value_text})
 
@@ -216,6 +197,25 @@ class DigitalForecast:
       print("Error: Unable to decode JSON data")
       return None, None
 
+
+class DataValidation:
+
+  @staticmethod
+  def get_reference_texts():
+    return {
+      "Aceh", "Bali", "BangkaBelitung", "Banten", "Bengkulu", "DIYogyakarta",
+      "DKIJakarta", "Gorontalo", "Jambi", "JawaBarat", "JawaTengah",
+      "JawaTimur", "KalimantanBarat", "KalimantanSelatan", "KalimantanTengah",
+      "KalimantanTimur", "KalimantanUtara", "KepulauanRiau", "Lampung",
+      "Maluku", "MalukuUtara", "NusaTenggaraBarat", "NusaTenggaraTimur",
+      "Papua", "PapuaBarat", "Riau", "SulawesiBarat", "SulawesiSelatan",
+      "SulawesiTengah", "SulawesiTenggara", "SulawesiUtara", "SumateraBarat",
+      "SumateraSelatan", "SumateraUtara", "Indonesia"
+    }
+
+
+class DescriptionCode:
+
   @staticmethod
   def get_weather_description(code):
     weather_code = {
@@ -261,11 +261,12 @@ class DigitalForecast:
 
     return wind_direction_code.get(code, "")
 
-  # ===========================================
+
+class DigitalForecast:
 
   @staticmethod
   def selectProvince(provinceName):
-    data = DigitalForecast.read_extract_data(provinceName)
+    data = ProcessUrl.read_extract_data(provinceName)
     reference_texts = DataValidation.get_reference_texts()
     # Initialize a new JSON structure to store the extracted data
     extracted_result = {"areas": [], "issue_info": {}}
@@ -327,7 +328,7 @@ class DigitalForecast:
 
   @staticmethod
   def selectAreaID(provinceName, area_id):
-    data = DigitalForecast.read_extract_data(provinceName)
+    data = ProcessUrl.read_extract_data(provinceName)
     reference_texts = DataValidation.get_reference_texts()
 
     if 'area' in data:
@@ -366,7 +367,7 @@ class DigitalForecast:
 
   @staticmethod
   def selectParameterID(provinceName, area_id, parameter_id):
-    data = DigitalForecast.read_extract_data(provinceName)
+    data = ProcessUrl.read_extract_data(provinceName)
     reference_texts = DataValidation.get_reference_texts()
 
     if 'area' in data:
@@ -413,7 +414,7 @@ class DigitalForecast:
 
   @staticmethod
   def selectTimerange(provinceName, area_id, parameter_id, timerange):
-    data = DigitalForecast.read_extract_data(provinceName)
+    data = ProcessUrl.read_extract_data(provinceName)
     reference_texts = DataValidation.get_reference_texts()
 
     if 'area' in data:
@@ -491,6 +492,3 @@ class DigitalForecast:
         "message":
         f"Province with Name '{provinceName}' not found. Did you mean '{suggestion}'?"
       }, 404
-
-
-# ======================

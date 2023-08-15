@@ -1,6 +1,8 @@
 import requests, xmltodict, json, difflib
 from datetime import datetime
 
+# make process data.
+
 
 class DataValidation:
 
@@ -260,10 +262,68 @@ class DigitalForecast:
     return wind_direction_code.get(code, "")
 
   # ===========================================
-  
+
   @staticmethod
   def selectProvince(provinceName):
-    pass
+    data = DigitalForecast.read_extract_data(provinceName)
+    reference_texts = DataValidation.get_reference_texts()
+    # Initialize a new JSON structure to store the extracted data
+    extracted_result = {"areas": [], "issue_info": {}}
+
+    if 'area' in data:
+      # Extract area information
+      area_data = data["area"]
+      for area in area_data:
+        area_info = {
+          "area_id": area["area_id"],
+          "description": area["description"],
+          "domain": area["domain"],
+          "coordinate": area["coordinate"],
+          "latitude": area["latitude"],
+          "longitude": area["longitude"],
+          "level": area["level"],
+          "region": area["region"],
+          "tags": area["tags"],
+          "type": area["type"],
+          "names": {
+            "en_US": area["names"]["en_US"],
+            "id_ID": area["names"]["id_ID"]
+          }
+        }
+        extracted_result["areas"].append(area_info)
+
+      # Extract issue timestamp
+      issue_data = data["issue"]
+      extracted_result["issue_info"] = {
+        "timestamp":
+        issue_data["timestamp"],
+        "date":
+        f"{issue_data['year']}-{issue_data['month']}-{issue_data['day']}",
+        "time":
+        f"{issue_data['hour']}:{issue_data['minute']}:{issue_data['second']}"
+      }
+    else:
+      suggestion = difflib.get_close_matches(provinceName.lower(),
+                                             reference_texts,
+                                             n=1)
+      if suggestion:
+        suggestion = suggestion[0]
+      else:
+        return {
+          'code':
+          404,
+          'messageOwner':
+          f"apaan dah ni '{provinceName}'.isi yang bener ya, sodara. jangan banyak typo!!"
+        }
+
+      extracted_result = {
+        "code":
+        404,
+        "message":
+        f"Province with Name '{provinceName}' not found. Did you mean '{suggestion}'?"
+      }, 404
+
+    return extracted_result
 
   @staticmethod
   def selectAreaID(provinceName, area_id):
@@ -279,8 +339,7 @@ class DigitalForecast:
       else:
         parameters = {
           "code": 404,
-          "message":
-          f"'Area with ID '{area_id}' not found."
+          "message": f"'Area with ID '{area_id}' not found."
         }, 404
     else:
       suggestion = difflib.get_close_matches(provinceName.lower(),
@@ -329,8 +388,7 @@ class DigitalForecast:
       else:
         return {
           "code": 404,
-          "message":
-          f"Area with ID '{area_id}' not found."
+          "message": f"Area with ID '{area_id}' not found."
         }, 404
     else:
       suggestion = difflib.get_close_matches(provinceName.lower(),
@@ -350,7 +408,7 @@ class DigitalForecast:
         "code":
         404,
         "message":
-        f"'Province with Name {provinceName}' not found. Did you mean '{suggestion}'?"
+        f"'Province with Name '{provinceName}' not found. Did you mean '{suggestion}'?"
       }, 404
 
   @staticmethod
@@ -410,8 +468,7 @@ class DigitalForecast:
       else:
         return {
           "code": 404,
-          "message":
-          f"Area with ID '{area_id}' not found."
+          "message": f"Area with ID '{area_id}' not found."
         }, 404
 
     else:
@@ -434,3 +491,6 @@ class DigitalForecast:
         "message":
         f"Province with Name '{provinceName}' not found. Did you mean '{suggestion}'?"
       }, 404
+
+
+# ======================

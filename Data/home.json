@@ -1,0 +1,44 @@
+{
+  "base_url": "https://weather-forecast-bmkg.ridwaanhall.repl.co/",
+  "source": "BMKG",
+  "how_to_use": "Use base URL + route",
+  "available_url": "Aceh, Bali, BangkaBelitung, Banten, Bengkulu, DIYogyakarta, DKIJakarta, Gorontalo, Jambi, JawaBarat, JawaTengah, JawaTimur, KalimantanBarat, KalimantanSelatan, KalimantanTengah, KalimantanTimur, KalimantanUtara, KepulauanRiau, Lampung, Maluku, MalukuUtara, NusaTenggaraBarat, NusaTenggaraTimur, Papua, PapuaBarat, Riau, SulawesiBarat, SulawesiSelatan, SulawesiTengah, SulawesiTenggara, SulawesiUtara, SumateraBarat, SumateraSelatan, SumateraUtara, Indonesia",
+  "routes":
+    {
+      "routes_list": [
+        {
+          "route": "/<provinceName>",
+          "function": "Province",
+          "params": ["provinceName"],
+          "description": "Get province data",
+          "example": "https://weather-forecast-bmkg.ridwaanhall.repl.co/DIYogyakarta"
+        },
+        {
+          "route": "/<provinceName>/<area_id>",
+          "function": "areaID",
+          "params": ["provinceName", "area_id"],
+          "description": "Get area ID data",
+          "example": "https://weather-forecast-bmkg.ridwaanhall.repl.co/DIYogyakarta/501187",
+          "note": "you can use area_id to select location you need."
+        },
+        {
+          "route": "/<provinceName>/<area_id>/<parameter_id>",
+          "function": "parameterID",
+          "params": ["provinceName", "area_id", "parameter_id"],
+          "description": "Get parameter ID data",
+          "example": "https://weather-forecast-bmkg.ridwaanhall.repl.co/DIYogyakarta/501187/weather",
+          "note": "this route for parameter_id, can find after run in function areaID. you can use parameter_id to select.",
+          "other_route": "weather, wd, etc."
+        },
+        {
+          "route": "/<provinceName>/<area_id>/<parameter_id>/<timerange>",
+          "function": "Timerange",
+          "params": ["provinceName", "area_id", "parameter_id", "timerange"],
+          "description": "Get timerange data",
+          "example": "https://weather-forecast-bmkg.ridwaanhall.repl.co/DIYogyakarta/501187/weather/6",
+          "note": "if daily, use date. if hourly, use hour such as 0, 6, 12, ... , 60 etc."
+        }
+      ]
+    }
+
+}
